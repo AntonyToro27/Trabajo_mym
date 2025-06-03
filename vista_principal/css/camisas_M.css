@@ -1,0 +1,306 @@
+.contenedor {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 50px;
+  margin-bottom: 20px;
+}
+
+.card-producto {
+  box-shadow: 0px 0px 5px 0px black;
+  background-color: white; /* Cambié a blanco para que se vea la tarjeta */
+  border-radius: 20px;
+  width: 320px; /* Ancho de cada tarjeta, igual al ancho de la imagen */
+  overflow: hidden; /* Para que el border-radius afecte también a la imagen */
+}
+
+
+img.Saten {
+  width: 100%; /* La imagen ocupa todo el ancho de su contenedor (.imagen-producto) */
+  height: auto; /* Mantiene la proporción de la imagen */
+  object-fit: cover;
+  border-radius: 20px 20px 0px 0px; /* Solo los bordes superiores redondeados */
+  display: block; /* Evita espacios extra debajo de la imagen */
+}
+
+.informacion-producto {
+  padding: 15px;
+  text-align: center; /* Centra el texto dentro de la información */
+}
+
+.informacion-producto p {
+  margin-bottom: 5px;
+}
+
+.precio {
+  font-weight: bold;
+  color: green; /* Ejemplo de estilo para el precio */
+}
+
+.botones-producto {
+  display: flex;
+  justify-content: space-around; /* Espacia los botones */
+  margin-top: 10px;
+}
+
+.botones-producto button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  
+}
+
+.botones-producto button:first-child {
+  background-color: red; /* Ejemplo de color para "Favoritos" */
+  color: white;
+}
+
+.botones-producto button:last-child {
+  background-color: lightgreen; /* Ejemplo de color para "Comprar" */
+  color: black;
+}
+
+/* Estilos para la tarjeta de producto */
+.card-producto {
+  box-shadow: 0px 0px 5px 0px black;
+  background-color: white; /* Color de fondo de la tarjeta */
+  border-radius: 20px;
+  width: 320px; /* Ancho deseado para la tarjeta */
+  overflow: hidden; /* Para que el border-radius afecte también a la imagen */
+  margin-bottom: 20px; /* Espacio entre tarjetas si tienes varias */
+}
+
+/* Estilos para el contenedor de la imagen */
+.imagen-producto {
+  /* Puedes añadir estilos específicos si lo necesitas, como un padding interno */
+}
+
+/* Estilos para la imagen */
+.imagen-producto img.Conjunto_marron {
+  width: 100%; /* La imagen ocupa todo el ancho de su contenedor */
+  height: auto; /* Mantiene la proporción de la imagen */
+  display: block; /* Evita espacios extra debajo de la imagen */
+  border-radius: 20px 20px 0px 0px; /* Bordes redondeados en la parte superior */
+  object-fit: cover; /* Cubre el contenedor manteniendo la proporción */
+}
+
+/* Estilos para el contenedor de la información del producto */
+.informacion-producto {
+  padding: 15px;
+  text-align: center; /* Centra el texto dentro de la información */
+}
+
+/* Estilos para los párrafos dentro de la información */
+.informacion-producto p {
+  margin-bottom: 5px;
+}
+
+/* Estilos específicos para el precio */
+.informacion-producto .precio {
+  font-weight: bold;
+  color: green; /* Ejemplo de color para el precio */
+}
+
+/* Estilos para el contenedor de los botones */
+.botones-producto {
+  display: flex;
+  justify-content: space-around; /* Espacia los botones */
+  margin-top: 10px;
+}
+
+/* Estilos para los botones */
+.botones-producto button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px; /* Tamaño de fuente de los botones */
+}
+
+/* Estilo para el primer botón (Favoritos) */
+.botones-producto button:first-child {
+  background-color: lightcoral; /* Ejemplo de color para "Favoritos" */
+  color: white;
+}
+
+/* Estilo para el último botón (Comprar) */
+.botones-producto button:last-child {
+  background-color: lightgreen; /* Ejemplo de color para "Comprar" */
+  color: black;
+}
+
+/* Estilos para el overlay (manteniendo los mismos) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro semitransparente */
+  display: none; /* Inicialmente oculto */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Asegura que esté por encima de todo */
+}
+
+.overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain; /* Ajusta la imagen dentro del overlay */
+}
+
+.cerrar-overlay {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #fff;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.cerrar-overlay:hover {
+  color: #ccc;
+}
+
+.imagen-ampliable {
+  cursor: pointer; /* Indica que la imagen es clickable */
+}
+.imagen-producto.multiple-imagenes {
+  display: flex;
+  flex-direction: column; /* Apila los elementos verticalmente */
+  align-items: center; /* Centra las imágenes horizontalmente si tienen diferente ancho */
+}
+
+.imagen-producto.multiple-imagenes img {
+  width: 100%; /* Cada imagen ocupa el ancho completo del contenedor */
+  height: auto;
+  margin-bottom: 5px; /* Espacio entre las imágenes */
+  border-radius: 10px; /* Un pequeño borde redondeado para cada imagen */
+  object-fit: cover; /* Ajusta la imagen manteniendo la proporción */
+}
+
+.imagen-producto.multiple-imagenes img:last-child {
+  margin-bottom: 0; /* Elimina el margen inferior de la última imagen */
+}
+.imagen-producto.carrusel-contenedor {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  border-radius: 20px 20px 0px 0px;
+}
+
+.carrusel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  scroll-snap-align: start;
+}
+
+.carrusel-slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* Opcional: Ocultar la barra de desplazamiento */
+.carrusel-contenedor::-webkit-scrollbar {
+  display: none;
+}
+
+.carrusel-contenedor {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Estilos para la tarjeta de producto (puedes tenerlos en tu CSS principal) */
+.card-producto {
+  box-shadow: 0px 0px 5px 0px black;
+  background-color: white;
+  border-radius: 20px;
+  width: 320px; /* Ancho deseado para la tarjeta */
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.informacion-producto {
+  padding: 15px;
+  text-align: center;
+}
+
+.informacion-producto p {
+  margin-bottom: 5px;
+}
+
+.informacion-producto .precio {
+  font-weight: bold;
+  color: green;
+}
+
+.botones-producto {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.botones-producto button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.botones-producto button:first-child {
+  background-color: lightcoral;
+  color: white;
+}
+
+.botones-producto button:last-child {
+  background-color: lightgreen;
+  color: black;
+}
+
+/* Estilos para el overlay de la imagen ampliada (si lo tienes) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.overlay img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.cerrar-overlay {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #fff;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.cerrar-overlay:hover {
+  color: #ccc;
+}
+
+.imagen-ampliable {
+  cursor: pointer;
+}
+

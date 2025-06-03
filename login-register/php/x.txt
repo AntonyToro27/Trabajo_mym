@@ -1,0 +1,109 @@
+<?php
+    session_start();
+    include 'conexion_db.php';
+
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $password = hash('sha512', $password);
+
+    echo $password;
+    die();
+
+    $validateLogin = mysqli_query($conexion, "SELECT * FROM usuarios WHERE email='$email' and contrasena='$password'");
+
+    if (mysqli_num_rows($validateLogin) > 0) {
+        $_SESSION['usuario'] = $email;
+        header("location: bienvenida.php");
+        exit();
+    }else{
+        echo '
+            <script>
+                alert("El usuario no existe, por favor verifique sus datos");
+                window.location = "../login-registro.php";
+            </script>
+        ';
+        exit();
+    }
+
+?>
+
+
+
+//PROTECCION DE VISTA
+
+
+
+<?php
+    session_start();
+
+    if (!isset($_SESSION['usuario'])) {
+        echo '
+            <script>
+                alert("Por favor inicia sesion");
+                window.location = "../login-registro.php"
+            </script>
+        ';
+        // header("location: ../login-registro.php");
+        session_destroy();
+        die();
+    };
+    session_destroy();
+?>
+
+
+
+//OTRO
+
+<?php
+
+    session_start();
+
+    if (isset($_SESSION['usuario'])) {
+        header("location: ../php/bienvenida.php");
+    }
+?>
+
+
+
+
+//PROTECCION DE VISTAS SEGUN CHATGPT
+
+///ADMIN VISTA
+<?php
+    if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
+        header("Location: ../login-registro.php");
+        exit();
+    }
+?>
+
+
+///LOGIN Y REGISTRO
+
+<?php
+    session_start();
+
+    // Verifica si el usuario ya está logueado
+    if (isset($_SESSION['usuario'])) {
+        // Verifica el rol del usuario
+        if ($_SESSION['rol'] === 'admin') {
+            header("location: ./php/adminVista.php");
+        } elseif ($_SESSION['rol'] === 'cliente') {
+            header("location: ./php/bienvenida.php");
+        }
+        exit();
+    }
+?>
+
+
+
+
+///BIENVENIDA
+
+
+<?php
+    session_start();
+    if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'cliente') {
+        header("location: ../login-registro.php");
+        exit();
+    }
+?>

@@ -1,0 +1,13 @@
+.card-img-top {
+  object-fit: cover;
+  height: 200px;
+}
+
+body {
+    padding-top: 56px; /* Ajusta este valor según la altura real de tu navbar */
+}
+
+.espacio-debajo-navbar {
+    margin-top: 100px; /* Ajusta este valor al espacio que desees. */
+    /* Puedes usar un valor como 80px, 90px, 120px, etc., hasta que quede a tu gusto. */
+}

@@ -1,0 +1,132 @@
+ //TARJETA QUE ME MUESTRA LO QUE HAY EN LA DB
+
+    <?php
+        include "php/conexion_bd.php";
+        $sql = "SELECT * FROM productos";
+        $resultado = $conexion->query($sql);
+    ?>
+ 
+    <div class="container mt-5">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <?php while ($producto = mysqli_fetch_assoc($resultado)): ?>
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="img/<?php echo $producto['imagen']; ?>" class="card-img-top" alt="Producto">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $producto['nombre']; ?></h5>
+                            <p class="card-text">$<?php echo number_format($producto['precio'], 2); ?></p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <a href="detalle.php?id=<?php echo $producto['id']; ?>" class="btn btn-outline-info">Ver más</a>
+                            <form action="agregar_carrito.php" method="POST">
+                                <input type="hidden" name="id" value="<?php echo $producto['id']; ?>">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-cart-plus"></i> Agregar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        </div>
+    </div>
+
+
+
+
+            <?php if (isset($_SESSION['usuario'])): ?>
+                <button class="btn btn-success btn-sm agregar-carrito">Agregar al carrito</button>
+                <?php endif; ?>
+
+
+
+//Intento carrito
+
+                            <script>
+  const carrito = {};
+  const tablaCarrito = document.querySelector('#carrito tbody');
+  const totalSpan = document.getElementById('total');
+
+  function actualizarCarrito() {
+    tablaCarrito.innerHTML = '';
+    let total = 0;
+
+    for (const id in carrito) {
+      const producto = carrito[id];
+      const subtotal = producto.precio * producto.cantidad;
+      total += subtotal;
+
+      const fila = document.createElement('tr');
+      fila.innerHTML = `
+        <td>${producto.nombre}</td>
+        <td>$${producto.precio.toLocaleString()}</td>
+        <td>
+          <input type="number" min="1" value="${producto.cantidad}" class="form-control cantidad-input" data-id="${id}">
+        </td>
+        <td>$${subtotal.toLocaleString()}</td>
+        <td><button class="btn btn-danger btn-sm eliminar-producto" data-id="${id}">Eliminar</button></td>
+      `;
+      tablaCarrito.appendChild(fila);
+    }
+
+    totalSpan.textContent = total.toLocaleString();
+    agregarEventos();
+  }
+
+  function agregarEventos() {
+    document.querySelectorAll('.cantidad-input').forEach(input => {
+      input.addEventListener('change', e => {
+        const id = e.target.dataset.id;
+        const nuevaCantidad = parseInt(e.target.value);
+        carrito[id].cantidad = nuevaCantidad > 0 ? nuevaCantidad : 1;
+        actualizarCarrito();
+      });
+    });
+
+    document.querySelectorAll('.eliminar-producto').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        delete carrito[id];
+        actualizarCarrito();
+      });
+    });
+  }
+
+  document.querySelectorAll('.agregar-carrito').forEach(boton => {
+    boton.addEventListener('click', () => {
+      const id = boton.dataset.id;
+      const nombre = boton.dataset.nombre;
+      const precio = parseInt(boton.dataset.precio);
+
+      if (carrito[id]) {
+        carrito[id].cantidad += 1;
+      } else {
+        carrito[id] = { nombre, precio, cantidad: 1 };
+      }
+      actualizarCarrito();
+    });
+  });
+
+  document.getElementById('vaciarCarrito').addEventListener('click', () => {
+    Object.keys(carrito).forEach(id => delete carrito[id]);
+    actualizarCarrito();
+  });
+</script>
+
+
+    <h2 class="mt-5">Carrito de compras</h2>
+    <table class="table table-bordered" id="carrito">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p><strong>Total: $<span id="total">0</span></strong></p>
+    <button class="btn btn-danger" id="vaciarCarrito">Vaciar carrito</button>
+  </div>
