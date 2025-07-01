@@ -58,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="p-4">
 <div class="container">
+    
     <h2>Agregar Categoría</h2>
 
     <!-- ⚠️ Mostrar errores si existen -->

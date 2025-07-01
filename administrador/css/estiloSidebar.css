@@ -1,0 +1,27 @@
+body {
+    overflow-x: hidden;
+}
+        
+.sidebar {
+    min-height: 100vh;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        display: none;
+    }
+
+    .sidebar.show {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 75%;
+        height: 100%;
+        background-color: #212529;
+        z-index: 9999;
+        padding: 1rem;
+    }
+}
+
+

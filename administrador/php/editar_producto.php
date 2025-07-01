@@ -21,34 +21,61 @@ $producto = mysqli_fetch_assoc($resultado);
 
 // Si se envió el formulario, actualizar producto
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'];
-    $descripcion = $_POST['descripcion'];
-    $precio = $_POST['precio'];
-    $stock = $_POST['stock'];
+    // Sanitización básica
+    $nombre = trim($_POST['nombre']);
+    $descripcion = trim($_POST['descripcion']);
+    $precio = floatval($_POST['precio']);
+    $stock = intval($_POST['stock']);
     $estado = $_POST['estado'];
-    $categoria_id = $_POST['categoria_id'];
+    $categoria_id = intval($_POST['categoria_id']);
 
-    // Imagen
+    $errores = [];
+
+    // 🔍 Validaciones
+    if (strlen($nombre) < 3) $errores[] = "El nombre debe tener al menos 3 caracteres.";
+    if (strlen($descripcion) < 5) $errores[] = "La descripción es muy corta.";
+    if ($precio < 0) $errores[] = "El precio no puede ser negativo.";
+    if ($stock < 0) $errores[] = "El stock no puede ser negativo.";
+    if ($categoria_id <= 0) $errores[] = "La categoría debe ser un número válido.";
+    if (!in_array($estado, ['activo', 'inactivo'])) $errores[] = "Estado no válido.";
+
+    // Validar imagen si fue subida
     $imagen = $producto['imagen'];
     if (!empty($_FILES['imagen']['name'])) {
-        $imagen = basename($_FILES['imagen']['name']);
-        move_uploaded_file($_FILES['imagen']['tmp_name'], "imagenes/" . $imagen);
+        $permitidos = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!in_array($_FILES['imagen']['type'], $permitidos)) {
+            $errores[] = "Solo se permiten imágenes JPG, PNG o WEBP.";
+        } else {
+            $imagen = basename($_FILES['imagen']['name']);
+            move_uploaded_file($_FILES['imagen']['tmp_name'], "imagenes/" . $imagen);
+        }
     }
 
-    // Actualizar en la base de datos
-    $update = "UPDATE productos 
-               SET nombre='$nombre', descripcion='$descripcion', precio='$precio',
-                   stock='$stock', imagen='$imagen', categoria_id='$categoria_id', estado='$estado' 
-               WHERE id = $id";
-    if (mysqli_query($conexion, $update)) {
-        $mensaje = "Producto actualizado correctamente.";
-        // refrescar datos
-        $resultado = mysqli_query($conexion, "SELECT * FROM productos WHERE id = $id");
-        $producto = mysqli_fetch_assoc($resultado);
+    // Si hay errores, los mostramos
+    if (!empty($errores)) {
+        $mensaje = "<ul class='text-danger'>";
+        foreach ($errores as $error) {
+            $mensaje .= "<li>$error</li>";
+        }
+        $mensaje .= "</ul>";
     } else {
-        $mensaje = "Error al actualizar: " . mysqli_error($conexion);
+        // ✅ Actualizar en la base de datos
+        $update = "UPDATE productos 
+                   SET nombre='$nombre', descripcion='$descripcion', precio='$precio',
+                       stock='$stock', imagen='$imagen', categoria_id='$categoria_id', estado='$estado' 
+                   WHERE id = $id";
+
+        if (mysqli_query($conexion, $update)) {
+            $mensaje = "<div class='text-success'>Producto actualizado correctamente.</div>";
+            // refrescar datos
+            $resultado = mysqli_query($conexion, "SELECT * FROM productos WHERE id = $id");
+            $producto = mysqli_fetch_assoc($resultado);
+        } else {
+            $mensaje = "<div class='text-danger'>Error al actualizar: " . mysqli_error($conexion) . "</div>";
+        }
     }
 }
+
 ?>
 
 <!DOCTYPE html>

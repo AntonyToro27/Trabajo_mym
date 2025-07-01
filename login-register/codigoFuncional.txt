@@ -1,0 +1,253 @@
+// REGISTER USER DB 
+
+
+<?php
+include 'conexion_db.php';
+
+$nombre_completo = $_POST['nombre_completo'];
+$email = $_POST['email'];
+$password = hash('sha512', $_POST['password']);
+
+// Verificar correo duplicado
+$verificar_correo = mysqli_query($conexion, "SELECT * FROM usuarios WHERE email='$email'");
+
+if (mysqli_num_rows($verificar_correo) > 0) {
+    echo '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+        <script>
+            Swal.fire({
+                icon: "error",
+                title: "Correo ya registrado",
+                text: "Este correo ya está en uso.",
+                confirmButtonColor: "#3085d6"
+            }).then(() => {
+                window.location = "../login-registro.php";
+            });
+        </script>
+    </body>
+    </html>
+    ';
+    exit();
+}
+
+$query = "INSERT INTO usuarios(nombre_completo, email, contrasena) VALUES('$nombre_completo', '$email', '$password')";
+$ejecutar = mysqli_query($conexion, $query);
+
+if ($ejecutar) {
+    echo '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+        <script>
+            Swal.fire({
+                icon: "success",
+                title: "Registro exitoso",
+                text: "Te has registrado correctamente.",
+                confirmButtonColor: "#3085d6"
+            }).then(() => {
+                window.location = "../login-registro.php";
+            });
+        </script>
+    </body>
+    </html>
+    ';
+} else {
+    echo '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+        <script>
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo registrar. Intenta nuevamente.",
+                confirmButtonColor: "#3085d6"
+            }).then(() => {
+                window.location = "../login-registro.php";
+            });
+        </script>
+    </body>
+    </html>
+    ';
+}
+mysqli_close($conexion);
+?>
+
+
+
+
+//LOGIN DB
+
+
+<?php
+session_start();
+include 'conexion_db.php';
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $email = $_POST['email'];
+    $password = hash('sha512', $_POST['password']);
+
+    $stmt = $conexion->prepare("SELECT id, email, rol FROM usuarios WHERE email = ? AND contrasena = ?");
+    $stmt->bind_param("ss", $email, $password);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    if ($resultado->num_rows > 0) {
+        $usuario = $resultado->fetch_assoc();
+        $_SESSION['usuario_id'] = $usuario['id'];
+        $_SESSION['usuario'] = $usuario['email'];
+        $_SESSION['rol'] = $usuario['rol'];
+
+        if ($usuario['rol'] === 'admin') {
+            header("location: ../../administrador/php/admin.php");
+        } else {
+            header("location: ../../vista_principal/vistaPrincipal.php");
+        }
+        exit();
+    } else {
+        echo '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        </head>
+        <body>
+            <script>
+                Swal.fire({
+                    icon: "error",
+                    title: "Inicio de sesión fallido",
+                    text: "El usuario no existe o los datos son incorrectos.",
+                    confirmButtonColor: "#3085d6"
+                }).then(() => {
+                    window.location = "../login-registro.php";
+                });
+            </script>
+        </body>
+        </html>
+        ';
+        exit();
+    }
+} else {
+    header("Location: ../login-registro.php");
+    exit();
+}
+?>
+// SCRIPT EN BODY FUNCIONAL DE CORREO YA REGISTRADO 
+
+
+    <!-- Incluye SweetAlert2 si aún no lo tienes
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const form = document.getElementById("form_register");
+        const nombre = document.getElementById("name");
+        const email = document.getElementById("email");
+        const password = document.getElementById("password");
+        const passwordConfirmation = document.getElementById("password_confirmation");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const { validated: validFields, message: fieldMessage } = validarCampos();
+            if (!validFields) return showAlert(fieldMessage);
+
+            const { validated, message } = validatePassword();
+            if (!validated) return showAlert(message);
+
+            const { validated: validatedSecurity, message: messageError } = validatePasswordSecurity();
+            if (!validatedSecurity) return showAlert(messageError);
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch("php/register_user_db.php", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                Swal.fire({
+                    icon: result.status === "ok" ? "success" : "error",
+                    title: result.status === "ok" ? "¡Registro exitoso!" : "Error",
+                    text: result.message,
+                    confirmButtonColor: "#3085d6"
+                }).then(() => {
+                    if (result.status === "ok") {
+                        // Puedes redirigir a login si lo prefieres:
+                        // window.location.href = "login.php";
+                        form.reset(); // Limpia el formulario
+                    }
+                });
+
+            } catch (error) {
+                Swal.fire("Error", "No se pudo conectar al servidor.", "error");
+            }
+        });
+
+        function validatePassword() {
+            if (password.value !== passwordConfirmation.value) {
+                return { validated: false, message: "Las contraseñas no coinciden" };
+            }
+            return { validated: true };
+        }
+
+        function validatePasswordSecurity() {
+            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,15}$/;
+            if (regex.test(password.value)) {
+                return { validated: true };
+            }
+            return {
+                validated: false,
+                message: "La contraseña debe tener mayúsculas, minúsculas, un número, un carácter especial y de 8 a 15 caracteres."
+            };
+        }
+
+        function validarCampos() {
+            const nombreValue = nombre.value.trim();
+            const emailValue = email.value.trim();
+            const passwordValue = password.value;
+
+            if (nombreValue === "") {
+                return { validated: false, message: "El nombre no puede estar vacío." };
+            }
+
+            if (/^\s/.test(nombre.value)) {
+                return { validated: false, message: "El nombre no puede comenzar con espacios." };
+            }
+
+            if (/\s/.test(emailValue)) {
+                return { validated: false, message: "El correo no puede contener espacios." };
+            }
+
+            if (/\s/.test(passwordValue)) {
+                return { validated: false, message: "La contraseña no puede contener espacios." };
+            }
+
+            return { validated: true };
+        }
+
+        function showAlert(message) {
+            Swal.fire({
+                title: 'Error!',
+                text: message,
+                icon: 'error',
+                toast: true,
+                timer: 5000,
+                showConfirmButton: false,
+                position: "bottom-right"
+            });
+        }
+    </script> -->
+

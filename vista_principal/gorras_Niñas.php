@@ -96,7 +96,7 @@
                 <ul class="navbar-nav mb-2 mb-lg-0">
                     <?php if (isset($_SESSION['usuario'])): ?>
                     <li class="nav-item me-2">
-                        <a class="btn btn-outline-primary" href="carrito_compras.php">
+                        <a class="btn btn-outline-primary" href="php/carrito.php">
                         <i class="bi bi-cart"></i> Carrito
                         </a>
                     </li>

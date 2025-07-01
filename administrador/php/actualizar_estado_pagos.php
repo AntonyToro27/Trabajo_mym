@@ -1,6 +1,3 @@
-<!-- Cambiar cositas -->
-
-
 <?php
 include('conexion.php');
 

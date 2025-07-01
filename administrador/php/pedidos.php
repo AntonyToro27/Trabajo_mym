@@ -22,22 +22,83 @@ $query = "SELECT p.id, p.total, p.estado, u.nombre_completo AS nombre_usuario
 <head>
     <meta charset="UTF-8">
     <title>Pedidos - Admin</title>
+    <link rel="stylesheet" href="../css/estiloSidebar.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="p-4">
-    <div class="container">
+<body>
+    <?php if (isset($_SESSION['mensaje_exito'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= $_SESSION['mensaje_exito']; ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php unset($_SESSION['mensaje_exito']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['mensaje_error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= $_SESSION['mensaje_error']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['mensaje_error']); ?>
+    <?php endif; ?>
+
+
+
+<!-- Botón para abrir sidebar en móviles -->
+<button class="btn btn-dark m-2 d-md-none" onclick="toggleSidebar()">☰ Menú</button>
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="bg-dark text-white sidebar p-3" id="sidebar">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="text-danger mb-0">MyM</h4>
+            <button class="btn btn-outline-light d-md-none" onclick="toggleSidebar()">✖</button>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2"><a href="productos.php" class="nav-link text-white">📦 Productos</a></li>
+            <li class="nav-item mb-2"><a href="listado_variante.php" class="nav-link text-white">🎯Variantes</a></li>
+            <li class="nav-item mb-2"><a href="usuarios.php" class="nav-link text-white">👥 Usuarios</a></li>
+            <li class="nav-item mb-2"><a href="categorias.php" class="nav-link text-white">📂 Categorías</a></li>
+            <li class="nav-item mb-2"><a href="configuracion.php" class="nav-link text-white">⚙️ Configuración</a></li>
+            <li class="nav-item mt-4"><a href="cerrarSesion.php" class="btn btn-danger w-100">Cerrar sesión</a></li>
+        </ul>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="p-4 w-100">
         <h2 class="mb-4">Lista de Pedidos</h2>
-        <!-- 📦 Botón para actualizar pedidos automáticamente -->
-<div class="mb-3">
-    <button id="btnActualizarPedidos" class="btn btn-outline-dark">
-        🕒 Actualizar pedidos pendientes
-    </button>
-</div>
 
-<!-- 🧾 Aquí se mostrará el mensaje de resultado -->
-<div id="mensajeResultado"></div>
+        <!-- Mensajes -->
+        <?php if (isset($_SESSION['mensaje_exito'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?= $_SESSION['mensaje_exito']; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['mensaje_exito']); ?>
+        <?php endif; ?>
 
+        <?php if (isset($_SESSION['mensaje_error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?= $_SESSION['mensaje_error']; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['mensaje_error']); ?>
+        <?php endif; ?>
+
+        <!-- Botón para actualizar pedidos -->
+        <div class="mb-3">
+            <button id="btnActualizarPedidos" class="btn btn-outline-dark">
+                🕒 Actualizar pedidos pendientes
+            </button>
+        </div>
+
+        <!-- Resultado del botón actualizar -->
+        <div id="mensajeResultado"></div>
+
+        <!-- Botón volver -->
         <a href="admin.php" class="btn btn-secondary mb-3">⬅ Volver al Panel</a>
+
+        <!-- Tabla de pedidos -->
         <table class="table table-bordered table-hover">
             <thead class="table-dark">
                 <tr>
@@ -56,43 +117,51 @@ $query = "SELECT p.id, p.total, p.estado, u.nombre_completo AS nombre_usuario
                         <td>$<?= number_format($row['total'], 2) ?></td>
                         <td><?= ucfirst($row['estado']) ?></td>
                         <td>
-                        <form action="editar_pedido.php" method="POST" style="display:inline;">
-    <input type="hidden" name="id_pedido" value="<?= $row['id'] ?>">
-    <button type="submit" class="btn btn-warning btn-sm">Actualizar estado</button>
-</form>
+                            <form action="editar_pedido.php" method="POST" style="display:inline;">
+                                <input type="hidden" name="id_pedido" value="<?= $row['id'] ?>">
+                                <button type="submit" class="btn btn-warning btn-sm">Actualizar estado</button>
+                            </form>
                             <form action="eliminar_pedido.php" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar este pedido?');">
-    <input type="hidden" name="id" value="<?= $row['id'] ?>">
-    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-</form>
+                                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
                         </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.getElementById("btnActualizarPedidos").addEventListener("click", function() {
-    fetch("actualizar_pedidos.php", {
-        method: 'GET',
-        credentials: 'same-origin' // ✅ Esto es lo que faltaba
-    })
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById("mensajeResultado").innerHTML = `
-            <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-                ${data}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>`;
-    })
-    .catch(error => {
-        document.getElementById("mensajeResultado").innerHTML = `
-            <div class="alert alert-danger mt-3">Error al actualizar los pedidos.</div>`;
-        console.error("Error:", error);
-    });
-});
+</div>
 
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('show');
+    }
+
+    // AJAX para actualizar pedidos
+    document.getElementById("btnActualizarPedidos").addEventListener("click", function() {
+        fetch("actualizar_pedidos.php", {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("mensajeResultado").innerHTML = `
+                <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+                    ${data}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>`;
+        })
+        .catch(error => {
+            document.getElementById("mensajeResultado").innerHTML = `
+                <div class="alert alert-danger mt-3">Error al actualizar los pedidos.</div>`;
+            console.error("Error:", error);
+        });
+    });
 </script>
+
 
 </body>
 </html>

@@ -1,96 +1,101 @@
-const form = document.getElementById("form_register");
-const nombre = document.getElementById("name");
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const passwordConfirmation = document.getElementById("password_confirmation");
 
-// Eventos
-form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    validarCampos();
-    validaciones();
-});
+// const form = document.getElementById("form_register");
+// const nombre = document.getElementById("name");
+// const email = document.getElementById("email");
+// const password = document.getElementById("password");
+// const passwordConfirmation = document.getElementById("password_confirmation");
 
-async function validaciones() {
-    const { validated: validFields, message: fieldMessage } = validarCampos();
-    if (!validFields) {
-        showAlert(fieldMessage);
-        return;
-    }
+// form.addEventListener("submit", async (event) => {
+//     event.preventDefault();
 
-    const { validated, message } = validatePassword();
-    if (!validated) {
-        showAlert(message);
-        return;
-    }
+//     const { validated: validFields, message: fieldMessage } = validarCampos();
+//     if (!validFields) return showAlert(fieldMessage);
 
-    const { validated: validatedSecurity, message: messageError } = validatePasswordSecurity();
-    if (!validatedSecurity) {
-        showAlert(messageError);
-        return;
-    }
+//     const { validated, message } = validatePassword();
+//     if (!validated) return showAlert(message);
 
-    form.submit();
-}
+//     const { validated: validatedSecurity, message: messageError } = validatePasswordSecurity();
+//     if (!validatedSecurity) return showAlert(messageError);
 
-// Validar si la contraseña es diferente a la confirmación
-function validatePassword() {
-    if (password.value !== passwordConfirmation.value) {
-        return { validated: false, message: "Las contraseñas no coinciden" };
-    }
-    return { validated: true };
-}
+//     const formData = new FormData(form);
 
-function validatePasswordSecurity() {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,15}$/;
-    if (regex.test(password.value)) {
-        return { validated: true };
-    }
-    return {
-        validated: false,
-        message:
-            "La contraseña debe tener mayúsculas, minúsculas, un número, un carácter especial y de 8 a 15 caracteres.",
-    };
-}
+//     try {
+//         const response = await fetch("php/register_user_db.php", {
+//             method: "POST",
+//             body: formData
+//         });
 
+//         const result = await response.json();
 
-function validarCampos(event, input) {
-    const nombreValue = nombre.value;
-    const emailValue = email.value;
-    const passwordValue = password.value;
+//         Swal.fire({
+//             icon: result.status === "ok" ? "success" : "error",
+//             title: result.status === "ok" ? "¡Registro exitoso!" : "Error",
+//             text: result.message,
+//             confirmButtonColor: "#3085d6"
+//         }).then(() => {
+//             if (result.status === "ok") {
+//                 // Puedes redirigir a login si lo prefieres:
+//                 // window.location.href = "login.php";
+//                 form.reset(); // Limpia el formulario
+//             }
+//         });
 
-    // Nombre no puede estar vacío o solo espacios
-    if (nombreValue.trim() === "") {
-        return { validated: false, message: "El nombre no puede estar vacío o solo contener espacios." };
-    }
+//     } catch (error) {
+//         Swal.fire("Error", "No se pudo conectar al servidor.", "error");
+//     }
+// });
 
-    // Nombre no puede comenzar con espacios
-    if (/^\s/.test(nombreValue)) {
-        return { validated: false, message: "El nombre no puede comenzar con espacios en blanco." };
-    }
+// function validatePassword() {
+//     if (password.value !== passwordConfirmation.value) {
+//         return { validated: false, message: "Las contraseñas no coinciden" };
+//     }
+//     return { validated: true };
+// }
 
-    // Email no puede contener espacios
-    if (/\s/.test(emailValue)) {
-        return { validated: false, message: "El correo no puede contener espacios." };
-    }
+// function validatePasswordSecurity() {
+//     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])[A-Za-z\d$@$!%*?&]{8,15}$/;
+//     if (regex.test(password.value)) {
+//         return { validated: true };
+//     }
+//     return {
+//         validated: false,
+//         message: "La contraseña debe tener mayúsculas, minúsculas, un número, un carácter especial y de 8 a 15 caracteres."
+//     };
+// }
 
-    // Contraseña no puede contener espacios
-    if (/\s/.test(passwordValue)) {
-        return { validated: false, message: "La contraseña no puede contener espacios." };
-    }
+// function validarCampos() {
+//     const nombreValue = nombre.value.trim();
+//     const emailValue = email.value.trim();
+//     const passwordValue = password.value;
 
-    return { validated: true };
-}
+//     if (nombreValue === "") {
+//         return { validated: false, message: "El nombre no puede estar vacío." };
+//     }
 
-function showAlert(message) {
-    Swal.fire({
-        title: 'Error!',
-        text: message,
-        icon: 'error',
-        toast: "true",
-        timer: 5000,
-        showConfirmButton: false,
-        position: "bottom-right",
-        confirmButtonText: 'Cool'
-    });
-}
+//     if (/^\s/.test(nombre.value)) {
+//         return { validated: false, message: "El nombre no puede comenzar con espacios." };
+//     }
+
+//     if (/\s/.test(emailValue)) {
+//         return { validated: false, message: "El correo no puede contener espacios." };
+//     }
+
+//     if (/\s/.test(passwordValue)) {
+//         return { validated: false, message: "La contraseña no puede contener espacios." };
+//     }
+
+//     return { validated: true };
+// }
+
+// function showAlert(message) {
+//     Swal.fire({
+//         title: 'Error!',
+//         text: message,
+//         icon: 'error',
+//         toast: true,
+//         timer: 5000,
+//         showConfirmButton: false,
+//         position: "bottom-right"
+//     });
+// }
+

@@ -1,15 +1,36 @@
 <?php
-session_start();
+    session_start();
+    include 'php/conexion_bd.php';
 
-// Simulación de algunos productos en la base de datos
-$productos = [
-    1 => ['nombre' => 'Camiseta Tipo Polo Blanca', 'precio' => 85000, 'imagen' => './img/Hombres/Camiseta_Blanca_tipo_Polo.jpg', 'descripcion' => 'Elegante camiseta tipo polo de algodón.'],
-    2 => ['nombre' => 'Blusa de satén vino tinto', 'precio' => 85000, 'imagen' => './img/Mujeres/Blusa Saten Vino Tinto.jpeg', 'descripcion' => 'Sofisticada blusa de satén en color vino tinto.'],
-    3 => ['nombre' => 'Sudadera Monastery Blanca con capucha', 'precio' => 100000, 'imagen' => './img/Hombres/Sudadera_Monastery_Blanca.jpg', 'descripcion' => 'Cómoda sudadera blanca con capucha de la marca Monastery.'],
-    4 => ['nombre' => 'Pantalón Deportivo Gris', 'precio' => 60000, 'imagen' => './img/Mujeres/Pantalon_deportivo5.jpeg', 'descripcion' => 'Pantalón deportivo ideal para tus entrenamientos.'],
-    5 => ['nombre' => 'Sudadera verde oscuro', 'precio' => 120000, 'imagen' => 'img/Hombres/Sudadera_con_Capucha_Verde_Oscuro.jpeg', 'descripcion' => 'Cómoda sudadera verde oscuro.'],
-    6 => ['nombre' => 'Conjunto deportivo negro', 'precio' => 35000, 'imagen' => 'img/Mujeres/Conjunto_athleisure_Negro.jpeg', 'descripcion' => 'Sofisticado conjunto athleisure deportivo.'],
-];
+    // Consulta a la tabla productos
+    $sql = "SELECT id, nombre, descripcion, precio, imagen FROM productos WHERE estado = 'activo'";
+    $resultado = $conexion->query($sql);
+
+    $productos = [];
+    if ($resultado->num_rows > 0) {
+        while ($row = $resultado->fetch_assoc()) {
+            $productos[$row['id']] = $row;
+        }
+    }
+
+    $variantes = [];
+    $sql = "
+        SELECT vp.producto_id, t.id AS talla_id, t.talla, c.id AS color_id, c.color
+        FROM variantes_producto vp
+        JOIN tallas t ON vp.talla_id = t.id
+        JOIN colores c ON vp.color_id = c.id
+    ";
+    $res = $conexion->query($sql);
+
+    while ($row = $res->fetch_assoc()) {
+        $pid = $row['producto_id'];
+        $variantes[$pid]['tallas'][$row['talla_id']] = $row['talla'];
+        $variantes[$pid]['colores_por_talla'][$row['talla_id']][] = [
+            'id' => $row['color_id'],
+            'color' => $row['color']
+        ];
+    }
+    $conexion->close();
 
 ?>
 
@@ -39,7 +60,7 @@ $productos = [
                             Hombres
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="./Camisetas_H.php">Camisetas</a></li>
+                            <li><a class="dropdown-item" href="/">Camisetas</a></li>
                             <li><a class="dropdown-item" href="./buzos_H.php">Buzos</a></li>
                             <li><a class="dropdown-item" href="./jeans_H.php">Jeans</a></li>
                             <li><a class="dropdown-item" href="./Deportiva_H.php">Deportiva</a></li>
@@ -98,9 +119,11 @@ $productos = [
                 <ul class="navbar-nav mb-2 mb-lg-0">
                     <?php if (isset($_SESSION['usuario'])): ?>
                     <li class="nav-item me-2">
-                        <a class="btn btn-outline-primary" href="carrito_compras.php">
+                        <a class="btn btn-outline-primary position-relative" href="carrito_compras.php">
                         <i class="bi bi-cart"></i> Carrito
-                        </a>
+                        </a> 
+
+
                     </li>
                     <li class="nav-item me-2">
                         <a class="btn btn-outline-secondary" href="pedidos.php">
@@ -129,6 +152,9 @@ $productos = [
         </div>
     </nav>
 
+
+    <!-- CARRUSEL -->
+
     <div id="carouselExampleFixed" class="carousel slide container mb-5" data-bs-ride="carousel">
         <div class="carousel-inner rounded shadow overflow-hidden" style="height: 450px;">
             <div class="carousel-item active">
@@ -151,53 +177,187 @@ $productos = [
         </button>
     </div>
 
-    <div class="container">
+    <!-- TARJETAS -->
+
+    <div class="container"> 
         <div class="row g-4">
             <?php foreach ($productos as $id => $producto): ?>
-            <div class="col-12 col-sm-6 col-md-4">
-                <div class="card h-100 shadow-sm d-flex flex-column">
-                    <img src="<?php echo $producto['imagen']; ?>" class="card-img-top img-fluid" alt="<?php echo $producto['nombre']; ?>" style="height: 400px;">
-                    <div class="card-body flex-grow-1">
-                        <h5 class="card-title"><?php echo $producto['nombre']; ?></h5>
-                        <h6 class="card-subtitle text-muted mb-2">COP$<?php echo number_format($producto['precio'], 0, ',', '.'); ?></h6>
-                        <p class="card-text"><?php echo $producto['descripcion']; ?></p>
-                    </div>
-                    <div class="card-footer bg-white border-0 d-flex justify-content-between">
-                        <a href="producto_detalle.php?id=<?php echo $id; ?>" class="btn btn-outline-primary btn-sm">Ver más</a>
-                        <?php if (isset($_SESSION['usuario'])): ?>
-                        <form action="carrito_compras.php" method="post">
-                            <input type="hidden" name="agregar_producto" value="1">
-                            <input type="hidden" name="producto_id" value="<?php echo $id; ?>">
-                            <input type="hidden" name="nombre" value="<?php echo $producto['nombre']; ?>">
-                            <input type="hidden" name="precio" value="<?php echo $producto['precio']; ?>">
-                            <button type="submit" class="btn btn-success btn-sm agregar-carrito">Agregar al carrito</button>
-                        </form>
-                        <?php endif; ?>
+                <div class="col-12 col-sm-6 col-md-4">
+                    <div class="card h-100 shadow-sm d-flex flex-column">
+                        <img src="../img/<?php echo $producto['imagen']; ?>" class="card-img-top img-fluid" alt="<?php echo $producto['nombre']; ?>" style="height: 400px; object-fit: cover;">
+                        <div class="card-body flex-grow-1">
+                            <h5 class="card-title"><?php echo $producto['nombre']; ?></h5>
+                            <h6 class="card-subtitle text-muted mb-2">COP$<?php echo number_format($producto['precio'], 0, ',', '.'); ?></h6>
+                            <p class="card-text"><?php echo $producto['descripcion']; ?></p>
+                        </div>
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between">
+                            <!-- <a href="producto_detalle.php?id=<?php echo $id; ?>" class="btn btn-outline-primary btn-sm">Ver más</a> -->
+                            <?php if (isset($_SESSION['usuario'])): ?>
+                                <form method="post" class="form-agregar-carrito">
+                                    <input type="hidden" name="producto_id" value="<?php echo $id; ?>">
+
+                                    <!-- Select de Talla -->
+                                    <select class="form-select form-select-sm mb-1 select-talla" name="talla_id" data-producto="<?= $id ?>" required>
+                                        <option value="">Seleccione talla</option>
+                                        <?php if (isset($variantes[$id]['tallas'])): ?>
+                                            <?php foreach ($variantes[$id]['tallas'] as $talla_id => $talla): ?>
+                                                <option value="<?= $talla_id ?>"><?= $talla ?></option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+
+                                    <select class="form-select form-select-sm mb-1 select-color" name="color_id" required disabled>
+                                        <option value="">Seleccione color</option>
+                                    </select>
+
+                                    <!-- Botón para agregar al carrito -->
+                                    <button type="button" class="btn btn-primary btn-agregar" data-producto="<?= $id ?>">Agregar al carrito</button>
+                                </form>
+
+
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-            </div>
             <?php endforeach; ?>
         </div>
     </div>
 
+
     <script>
-        // Si usas SweetAlert para confirmar la acción
-        document.querySelectorAll('.agregar-carrito').forEach(btn => {
-            btn.addEventListener('click', (event) => {
-                event.preventDefault(); // Evitar la recarga de la página del formulario
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Agregado al carrito',
-                    text: 'El producto ha sido agregado exitosamente.',
-                    timer: 1500,
-                    showConfirmButton: false
+        document.querySelectorAll('.select-talla').forEach(selectTalla => {
+            selectTalla.addEventListener('change', function () {
+                const card = this.closest('.card');
+                const producto_id = this.dataset.producto;
+                const talla_id = this.value;
+                const colorSelect = card.querySelector('.select-color');
+
+                if (!talla_id) {
+                    colorSelect.innerHTML = '<option value="">Seleccione color</option>';
+                    colorSelect.disabled = true;
+                    return;
+                }
+
+                fetch('obtencion_colores.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `producto_id=${producto_id}&talla_id=${talla_id}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Respuesta de colores:", data); 
+
+                    colorSelect.innerHTML = '<option value="">Seleccione color</option>';
+
+                    if (data.success) {
+                        data.colores.forEach(color => {
+                            const option = document.createElement('option');
+                            option.value = color.id;
+                            option.textContent = color.color;
+                            colorSelect.appendChild(option);
+                        });
+                        colorSelect.disabled = false;
+                    } else {
+                        console.error("Error al cargar colores:", data.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudieron cargar los colores: ' + data.message
+                        });
+                        colorSelect.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error en la solicitud Fetch para colores:", error);
+                    colorSelect.innerHTML = '<option value="">Error de conexión</option>';
+                    colorSelect.disabled = true;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de red',
+                        text: 'Hubo un problema al conectar con el servidor para obtener los colores.'
+                    });
                 });
-                // Enviar el formulario después de mostrar la alerta
-                btn.closest('form').submit();
             });
         });
+        console.log("Producto ID:", producto_id);
+        console.log("Talla ID:", talla_id);
+
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('.btn-agregar').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const card = this.closest('.card'); 
+            const producto_id = this.getAttribute('data-producto');
+            const tallaSelect = card.querySelector('.select-talla');
+            const colorSelect = card.querySelector('.select-color');
+
+            const talla_id = tallaSelect.value;
+            const color_id = colorSelect.value;
+
+            if (!talla_id || !color_id) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¡Ups!',
+                    text: 'Por favor selecciona una talla y un color.',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+
+            fetch('add_carrito.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `producto_id=${producto_id}&talla_id=${talla_id}&color_id=${color_id}`
+            })
+            .then(res => res.text())
+            .then(data => {
+                if (data === 'ok') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Agregado al carrito',
+                        text: 'El producto ha sido añadido correctamente.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data
+                    });
+                }
+                actualizarContadorCarrito();
+            });
+        });
+    });
+    </script>
+
+
+
+
+<script>
+function actualizarContadorCarrito() {
+  fetch('carrito_contador.php')
+    .then(res => res.text())
+    .then(total => {
+      const badge = document.getElementById('contador-carrito');
+      if (badge) {
+        badge.textContent = total;
+      }
+    });
+}
+
+// Llamada inicial
+actualizarContadorCarrito();
+</script>
+
+
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -68,48 +68,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Configuración</title>
+    <link rel="stylesheet" href="../css/estiloSidebar.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="p-4">
-<?php if (isset($_SESSION['mensaje_exito'])): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <?= $_SESSION['mensaje_exito']; ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<body>
+    
+    <?php if (isset($_SESSION['mensaje_exito'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= $_SESSION['mensaje_exito']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['mensaje_exito']); ?>
+    <?php endif; ?>
+
+    <!-- Botón para abrir el sidebar en móviles -->
+    <button class="btn btn-dark m-2 d-md-none" onclick="toggleSidebar()">☰ Menú</button>
+
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="bg-dark text-white sidebar p-3" id="sidebar">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="text-danger mb-0">MyM</h4>
+                <button class="btn btn-outline-light d-md-none" onclick="toggleSidebar()">✖</button>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2"><a href="productos.php" class="nav-link text-white">📦 Productos</a></li>
+                <li class="nav-item mb-2"><a href="listado_variante.php" class="nav-link text-white">🎯Editar Variantes</a></li>
+                <li class="nav-item mb-2"><a href="pedidos.php" class="nav-link text-white">🧾 Pedidos</a></li>
+                <li class="nav-item mb-2"><a href="usuarios.php" class="nav-link text-white">👥 Usuarios</a></li>
+                <li class="nav-item mb-2"><a href="categorias.php" class="nav-link text-white">📂 Categorías</a></li>
+                <li class="nav-item mt-4"><a href="cerrarSesion.php" class="btn btn-danger w-100">Cerrar sesión</a></li>
+            </ul>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="p-4 w-100">
+            <h2>Configuración del Administrador</h2>
+
+            <!-- Alerta de éxito -->
+            <?php if (isset($_SESSION['mensaje_exito'])): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <?= $_SESSION['mensaje_exito']; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php unset($_SESSION['mensaje_exito']); ?>
+            <?php endif; ?>
+
+            <!-- Botón de volver -->
+            <a href="admin.php" class="btn btn-secondary mb-3">⬅ Volver</a>
+
+            <!-- Formulario de configuración -->
+            <form method="POST" class="row g-3">
+                <div class="col-md-6">
+                    <label>Nombre completo</label>
+                    <input type="text" name="nombre_completo" value="<?= $admin['nombre_completo'] ?>" class="form-control" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label>Email</label>
+                    <input type="email" name="email" value="<?= $admin['email'] ?>" class="form-control" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label>Contraseña nueva (opcional)</label>
+                    <input type="password" name="contrasena" class="form-control" placeholder="Deja vacío para no cambiarla">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-success w-100 mt-4">Actualizar</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <?php unset($_SESSION['mensaje_exito']); ?>
-<?php endif; ?>
 
-    <h2>Configuración del Administrador</h2>
-
-    <!-- 🔙 Botón para volver al panel principal -->
-    <a href="admin.php" class="btn btn-secondary mb-3">⬅ Volver</a>
-
-    <!-- 📝 Formulario para actualizar nombre, email y contraseña -->
-    <form method="POST" class="row g-3">
-        <!-- Campo para editar el nombre completo -->
-        <div class="col-md-6">
-            <label>Nombre completo</label>
-            <input type="text" name="nombre_completo" value="<?= $admin['nombre_completo'] ?>" class="form-control" required>
-        </div>
-
-        <!-- Campo para editar el correo electrónico -->
-        <div class="col-md-6">
-            <label>Email</label>
-            <input type="email" name="email" value="<?= $admin['email'] ?>" class="form-control" required>
-        </div>
-
-        <!-- Campo opcional para cambiar la contraseña -->
-        <div class="col-md-6">
-            <label>Contraseña nueva (opcional)</label>
-            <input type="password" name="contrasena" class="form-control" placeholder="Deja vacío para no cambiarla">
-        </div>
-
-        <!-- Botón para enviar el formulario -->
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-success w-100 mt-4">Actualizar</button>
-        </div>
-    </form>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+    </script>
 </body>
 </html>
