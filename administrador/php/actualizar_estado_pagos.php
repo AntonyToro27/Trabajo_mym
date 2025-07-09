@@ -1,7 +1,6 @@
 <?php
 include('conexion.php');
 
-// Cambiar pedidos a "procesando" si tienen un pago completado y aún están en "pendiente"
 $query = "UPDATE pedidos p
           JOIN pagos pa ON p.id_pedido = pa.pedido_id
           SET p.estado = 'procesando'

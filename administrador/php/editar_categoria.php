@@ -1,9 +1,9 @@
 <?php
 session_start();
 
-// 🛡️ Verificamos que el usuario esté autenticado como administrador
+// Verificamos que el usuario esté autenticado como administrador
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: loginA.php");
+    header("Location: ../../login-register/login-registro.php");
     exit();
 }
 

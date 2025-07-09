@@ -2,15 +2,20 @@
     session_start();
     include 'php/conexion_bd.php';
 
-    //el rol debe ser como cliente
-    if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'cliente') {
-        header("Location: ../login-register/login-registro.php");
-        exit();
+    // Recoger filtros desde la URL
+    $categoria_id = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
+    $genero = isset($_GET['genero']) ? $conexion->real_escape_string($_GET['genero']) : null;
+
+    //consulta SQL
+    $sql = "SELECT id, nombre, descripcion, precio, imagen FROM productos WHERE estado = 'activo'";
+
+    if ($categoria_id) {
+        $sql .= " AND categoria_id = $categoria_id";
+    }
+    if ($genero) {
+        $sql .= " AND genero = '$genero'";
     }
 
-
-    // Consulta de productos
-    $sql = "SELECT id, nombre, descripcion, precio, imagen FROM productos WHERE estado = 'activo'";
     $resultado = $conexion->query($sql);
 
     $productos = [];
@@ -21,7 +26,7 @@
     }
 
     $variantes = [];
-    //Consulta las variantes, con tallas, colores
+    //Consulta de variantes, talla,color
     $sql = "
         SELECT vp.producto_id, t.id AS talla_id, t.talla, c.id AS color_id, c.color
         FROM variantes_producto vp
@@ -30,7 +35,7 @@
     ";
     $res = $conexion->query($sql);
 
-    //Recorre el resultado de la consulta y organiza los datos de la variante
+    //Agrupa los productos por talla y color
     while ($row = $res->fetch_assoc()) {
         $pid = $row['producto_id'];
         $variantes[$pid]['tallas'][$row['talla_id']] = $row['talla'];
@@ -46,12 +51,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MyM</title>
+    <title>Productos Filtrados</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
     <link rel="stylesheet" href="./css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -131,6 +134,7 @@
                         <i class="bi bi-cart"></i> Carrito
                         </a> 
 
+
                     </li>
                     <li class="nav-item me-2">
                         <a class="btn btn-outline-secondary" href="pedidosUser.php">
@@ -160,47 +164,29 @@
     </nav>
 
 
-    <!-- CARRUSEL -->
-
-    <div id="carouselExampleFixed" class="carousel slide container mb-5" data-bs-ride="carousel">
-        <div class="carousel-inner rounded shadow overflow-hidden" style="height: 450px;">
-            <div class="carousel-item active">
-                <img src="img/varios/ropa_adidas.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Banner 1">
-            </div>
-            <div class="carousel-item">
-                <img src="img/varios/ropa_mujer.webp" class="d-block w-100 h-100 object-fit-cover" alt="Banner 2">
-            </div>
-            <div class="carousel-item">
-                <img src="img/varios/ropa_nike.jpg" class="d-block w-100 h-100 object-fit-cover" alt="Banner 3">
-            </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleFixed" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-            <span class="visually-hidden">Anterior</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleFixed" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-            <span class="visually-hidden">Siguiente</span>
-        </button>
-    </div>
-
-    <!-- TARJETAS -->
-
-    <div class="container"> 
+    <div class="container mt-5 pt-4">
         <div class="row g-4">
+            <!-- Verifica si la variable está vacía o hay algo en ella -->
+            <?php if (empty($productos)): ?>
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">No hay productos que coincidan con los filtros.</div>
+                </div>
+            <?php endif; ?>
+
+            <!-- tarjeta para cada producto -->
             <?php foreach ($productos as $id => $producto): ?>
                 <div class="col-12 col-sm-6 col-md-4">
                     <div class="card h-100 shadow-sm d-flex flex-column">
-                        <img src="../img/<?php echo $producto['imagen']; ?>" class="card-img-top img-fluid" alt="<?php echo $producto['nombre']; ?>" style="height: 400px; object-fit: cover;">
+                        <img src="../img/<?= $producto['imagen']; ?>" class="card-img-top img-fluid" alt="<?= $producto['nombre']; ?>" style="height: 400px; object-fit: cover;">
                         <div class="card-body flex-grow-1">
-                            <h5 class="card-title"><?php echo $producto['nombre']; ?></h5>
-                            <h6 class="card-subtitle text-muted mb-2">COP$<?php echo number_format($producto['precio'], 0, ',', '.'); ?></h6>
-                            <p class="card-text"><?php echo $producto['descripcion']; ?></p>
+                            <h5 class="card-title"><?= $producto['nombre']; ?></h5>
+                            <h6 class="card-subtitle text-muted mb-2">COP$<?= number_format($producto['precio'], 0, ',', '.'); ?></h6>
+                            <p class="card-text"><?= $producto['descripcion']; ?></p>
                         </div>
                         <div class="card-footer bg-white border-0 d-flex justify-content-between">
                             <?php if (isset($_SESSION['usuario'])): ?>
                                 <form method="post" class="form-agregar-carrito">
-                                    <input type="hidden" name="producto_id" value="<?php echo $id; ?>">
+                                    <input type="hidden" name="producto_id" value="<?= $id; ?>">
 
                                     <!-- Select de Talla -->
                                     <select class="form-select form-select-sm mb-1 select-talla" name="talla_id" data-producto="<?= $id ?>" required>
@@ -212,11 +198,12 @@
                                         <?php endif; ?>
                                     </select>
 
+                                    <!-- Select de Color -->
                                     <select class="form-select form-select-sm mb-1 select-color" name="color_id" required disabled>
                                         <option value="">Seleccione color</option>
                                     </select>
 
-                                    <!-- Botón para agregar al carrito -->
+                                    <!-- Botón -->
                                     <button type="button" class="btn btn-primary btn-agregar" data-producto="<?= $id ?>">Agregar al carrito</button>
                                 </form>
                             <?php endif; ?>
@@ -227,50 +214,52 @@
         </div>
     </div>
 
+
     <footer class="bg-dark text-white mt-5 pt-4 pb-3">
         <div class="container">
             <div class="row">
 
-                <div class="col-md-4 mb-3">
-                    <h5 class="fw-bold">MyM</h5>
-                    <p class="text-white">Tu estilo, tu elección. Ropa para todos los géneros y edades.</p>
-                </div>
+            <div class="col-md-4 mb-3">
+                <h5 class="fw-bold">MyM</h5>
+                <p class="text-white">Tu estilo, tu elección. Ropa para todos los géneros y edades.</p>
+            </div>
 
-                <div class="col-md-4 mb-3">
-                    <h6 class="text-uppercase">Enlaces</h6>
-                    <ul class="list-unstyled">
-                    <li><a href="index.php" class="text-white text-decoration-none">Inicio</a></li>
-                    <li><a href="vistasProductos.php" class="text-white text-decoration-none">Productos</a></li>
-                    <li><a href="cuenta.php" class="text-white text-decoration-none">Mi cuenta</a></li>
-                    <li><a href="contacto.php" class="text-white text-decoration-none">Contacto</a></li>
-                    </ul>
-                </div>
+            <div class="col-md-4 mb-3">
+                <h6 class="text-uppercase">Enlaces</h6>
+                <ul class="list-unstyled">
+                <li><a href="index.php" class="text-white text-decoration-none">Inicio</a></li>
+                <li><a href="vistasProductos.php" class="text-white text-decoration-none">Productos</a></li>
+                <li><a href="cuenta.php" class="text-white text-decoration-none">Mi cuenta</a></li>
+                <li><a href="contacto.php" class="text-white text-decoration-none">Contacto</a></li>
+                </ul>
+            </div>
 
-                <div class="col-md-4 mb-3">
-                    <h6 class="text-uppercase">Síguenos</h6>
-                    <a href="#" class="text-white d-block mb-1">
-                    <i class="bi bi-facebook me-1"></i> Facebook
-                    </a>
-                    <a href="#" class="text-white d-block mb-1">
-                    <i class="bi bi-instagram me-1"></i> Instagram
-                    </a>
-                    <a href="#" class="text-white d-block">
-                    <i class="bi bi-tiktok me-1"></i> TikTok
-                    </a>
-                </div>
+            <div class="col-md-4 mb-3">
+                <h6 class="text-uppercase">Síguenos</h6>
+                <a href="#" class="text-white d-block mb-1">
+                <i class="bi bi-facebook me-1"></i> Facebook
+                </a>
+                <a href="#" class="text-white d-block mb-1">
+                <i class="bi bi-instagram me-1"></i> Instagram
+                </a>
+                <a href="#" class="text-white d-block">
+                <i class="bi bi-tiktok me-1"></i> TikTok
+                </a>
+            </div>
 
             </div>
+
             <hr class="border-light">
+
             <div class="text-center text-muted small">
             &copy; <?= date("Y") ?> MyM. Todos los derechos reservados.
             </div>
         </div>
     </footer>
 
-
-
-
+    <!-- JS para selects -->
     <script>
+        //Select de talla y según la talla el color
         document.querySelectorAll('.select-talla').forEach(selectTalla => {
             selectTalla.addEventListener('change', function () {
                 const card = this.closest('.card');
@@ -278,12 +267,15 @@
                 const talla_id = this.value;
                 const colorSelect = card.querySelector('.select-color');
 
+
+                //si no se selecciona una talla valida el selector de colores se desactiva
                 if (!talla_id) {
                     colorSelect.innerHTML = '<option value="">Seleccione color</option>';
                     colorSelect.disabled = true;
                     return;
                 }
 
+                //Peticion de color segun producto y talla
                 fetch('obtencion_colores.php', {
                     method: 'POST',
                     headers: {
@@ -293,11 +285,9 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Respuesta de colores:", data); 
-
                     colorSelect.innerHTML = '<option value="">Seleccione color</option>';
 
-                    if (data.success) {
+                    if (data.success) { 
                         data.colores.forEach(color => {
                             const option = document.createElement('option');
                             option.value = color.id;
@@ -305,8 +295,7 @@
                             colorSelect.appendChild(option);
                         });
                         colorSelect.disabled = false;
-                    } else {
-                        console.error("Error al cargar colores:", data.message);
+                    } else { //Error con sweetalert
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -315,29 +304,24 @@
                         colorSelect.disabled = true;
                     }
                 })
-                .catch(error => {
-                    console.error("Error en la solicitud Fetch para colores:", error);
+                .catch(error => { //Error en la conexion
                     colorSelect.innerHTML = '<option value="">Error de conexión</option>';
                     colorSelect.disabled = true;
                     Swal.fire({
                         icon: 'error',
                         title: 'Error de red',
-                        text: 'Hubo un problema al conectar con el servidor para obtener los colores.'
+                        text: 'Hubo un problema al conectar con el servidor.'
                     });
                 });
             });
         });
-        console.log("Producto ID:", producto_id);
-        console.log("Talla ID:", talla_id);
-
     </script>
 
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- JS para agregar al carrito -->
     <script>
         document.querySelectorAll('.btn-agregar').forEach(btn => {
             btn.addEventListener('click', function () {
+                //Cuando se hace click en agregar al carrito se obtiene la info de la tarjeta
                 const card = this.closest('.card'); 
                 const producto_id = this.getAttribute('data-producto');
                 const tallaSelect = card.querySelector('.select-talla');
@@ -347,7 +331,7 @@
                 const color_id = colorSelect.value;
 
                 if (!talla_id || !color_id) {
-                    Swal.fire({
+                    Swal.fire({ //Aviso de que no se ha seleccionado talla o color
                         icon: 'warning',
                         title: '¡Ups!',
                         text: 'Por favor selecciona una talla y un color.',
@@ -355,7 +339,7 @@
                     });
                     return;
                 }
-
+                //Peticion para agregar al carrito
                 fetch('add_carrito.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -372,9 +356,10 @@
                             showConfirmButton: false
                         });
 
-                            tallaSelect.selectedIndex = 0;
-                            colorSelect.innerHTML = '<option value="">Seleccione color</option>';
-                            colorSelect.disabled = true;
+                        //reinicia los selectores
+                        tallaSelect.selectedIndex = 0; 
+                        colorSelect.innerHTML = '<option value="">Seleccione color</option>';
+                        colorSelect.disabled = true;
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -386,21 +371,21 @@
                 });
             });
         });
-    </script>
 
-    <script>
         function actualizarContadorCarrito() {
-        fetch('carrito_contador.php')
-            .then(res => res.text())
-            .then(total => {
-            const badge = document.getElementById('contador-carrito');
-            if (badge) {
-                badge.textContent = total;
-            }
-            });
+            fetch('carrito_contador.php')
+                .then(res => res.text())
+                .then(total => {
+                    const badge = document.getElementById('contador-carrito');
+                    if (badge) {
+                        badge.textContent = total;
+                    }
+                });
         }
+
         actualizarContadorCarrito();
     </script>
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

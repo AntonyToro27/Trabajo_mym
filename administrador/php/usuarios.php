@@ -1,18 +1,34 @@
 <?php
-session_start();
+    include('conexion.php');
+    session_start();
 
-// 🛡️ Validamos que el usuario tenga rol de admin
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: ../../login-register/login-registro.php");
-    exit();
-}
+    // Validar que el usuario tenga rol de admin
+    if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
+        header("Location: ../../login-register/login-registro.php");
+        exit();
+    }
 
-// 🔌 Conectamos a la base de datos
-include('conexion.php');
+    // Número de usuarios por página
+    $por_pagina = 10;
 
-// 🔍 Consultamos todos los usuarios registrados
-$consulta = "SELECT id, cedula, nombre_completo, email, telefono, direccion, rol FROM Usuarios";
-$resultado = mysqli_query($conexion, $consulta);
+    // Página actual desde URL, por defecto 1
+    $pagina = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+
+    // Calcular el offset
+    $offset = ($pagina - 1) * $por_pagina;
+
+    // Total de usuarios para saber cuántas páginas hay
+    $total_resultado = mysqli_query($conexion, "SELECT COUNT(*) AS total FROM Usuarios");
+    $total_filas = mysqli_fetch_assoc($total_resultado)['total'];
+    $total_paginas = ceil($total_filas / $por_pagina);
+
+    // Consulta con paginación
+    $consulta = "SELECT id, cedula, nombre_completo, email, telefono, direccion, rol 
+                FROM Usuarios 
+                ORDER BY id DESC 
+                LIMIT $por_pagina OFFSET $offset";
+    $resultado = mysqli_query($conexion, $consulta);
+
 ?>
 
 <!DOCTYPE html>
@@ -104,6 +120,7 @@ $resultado = mysqli_query($conexion, $consulta);
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- recorre los usuarios de la consulta y los muestra -->
                     <?php while ($fila = mysqli_fetch_assoc($resultado)) { ?>
                         <tr>
                             <td><?= $fila['id'] ?></td>
@@ -127,6 +144,29 @@ $resultado = mysqli_query($conexion, $consulta);
                     <?php } ?>
                 </tbody>
             </table>
+            
+            <!-- Paginación -->
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <!-- Botón Anterior -->
+                    <li class="page-item <?= $pagina <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?pagina=<?= $pagina - 1 ?>">Anterior</a>
+                    </li>
+
+                    <!-- Números de página -->
+                    <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                        <li class="page-item <?= $i == $pagina ? 'active' : '' ?>">
+                            <a class="page-link" href="?pagina=<?= $i ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <!-- Botón Siguiente -->
+                    <li class="page-item <?= $pagina >= $total_paginas ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?pagina=<?= $pagina + 1 ?>">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+
         </div>
     </div>
 

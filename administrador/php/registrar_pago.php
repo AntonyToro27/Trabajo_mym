@@ -1,24 +1,21 @@
-<!-- Todavia no -->
-
-
 <?php
-session_start(); // ← Esto debe estar antes de usar $_SESSION
+session_start();
 
 include('conexion.php');
 
-$id_usuario = $_SESSION['id_usuario']; // ← Usamos el ID guardado en la sesión
-
-// El resto del código...
-
+$id_usuario = $_SESSION['id_usuario']; 
+//Se obtienen losdatos
 $pedido_id = $_POST['pedido_id'];
 $metodo = $_POST['metodo'];
 $estado = $_POST['estado'];
 $referencia = $_POST['referencia'];
 $monto = $_POST['monto'];
 
+//Se inserta a la db
 $insert = "INSERT INTO pagos (pedido_id, metodo, estado, referencia, monto)
            VALUES ('$pedido_id', '$metodo', '$estado', '$referencia', '$monto')";
 
+//Si es exitoso cambia el estado del pedido
 if (mysqli_query($conexion, $insert)) {
     if ($estado === 'completado') {
         $update = "UPDATE pedidos 

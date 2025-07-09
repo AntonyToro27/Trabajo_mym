@@ -1,18 +1,21 @@
 <?php
-require 'php/conexion_bd.php';
-session_start();
+    require 'php/conexion_bd.php';
+    session_start();
 
-if (!isset($_SESSION['usuario_id'])) {
-    echo "No autorizado";
-    exit;
-}
+    //Verifica el id del usuario
+    if (!isset($_SESSION['usuario_id'])) {
+        echo "No autorizado";
+        exit;
+    }
 
-$usuario_id = $_SESSION['usuario_id'];
+    $usuario_id = $_SESSION['usuario_id'];
 
-$stmt = $conexion->prepare("DELETE FROM carrito WHERE usuario_id = ?");
-if ($stmt->execute([$usuario_id])) {
-    echo "ok";
-} else {
-    echo "Error al vaciar el carrito";
-}
+    //Elimina los productos q esten asociados al id
+    $stmt = $conexion->prepare("DELETE FROM carrito WHERE usuario_id = ?");
+    //Se ejecuta la setencia anterior
+    if ($stmt->execute([$usuario_id])) {
+        echo "ok";
+    } else {
+        echo "Error al vaciar el carrito";
+    }
 ?>

@@ -1,16 +1,17 @@
 <?php
 session_start();
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
-    header("Location: loginA.php");
+    header("Location: ../../login-register/login-registro.php");
     exit();
 }
 
 include('conexion.php');
 
+//procesa eliminacion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    // 🔍 Verificamos si hay productos que usan esta categoría
+    //verificamos si hay productos que usan esta categoría
     $verificar = "SELECT COUNT(*) FROM productos WHERE categoria_id = ?";
     $stmt = mysqli_prepare($conexion, $verificar);
     mysqli_stmt_bind_param($stmt, "i", $id);
@@ -20,10 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     mysqli_stmt_close($stmt);
 
     if ($totalProductos > 0) {
-        // ❌ Hay productos relacionados, no se puede eliminar
+        //Hay productos relacionados, no se puede eliminar
         $_SESSION['mensaje_error'] = "No puedes eliminar esta categoría porque tiene productos asociados.";
     } else {
-        // ✅ No hay productos, podemos eliminar la categoría
+        //No hay productos, podemos eliminar la categoría
         $query = "DELETE FROM categorias WHERE id = ?";
         $stmt = mysqli_prepare($conexion, $query);
         mysqli_stmt_bind_param($stmt, "i", $id);

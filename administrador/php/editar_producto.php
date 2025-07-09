@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['usuario'])) {
-    header("Location: login.html"); //cambiar locacion
+    header("Location: ../../login-register/login-registro.php"); //cambiar locacion
     exit();
 }
 include('conexion.php');
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim($_POST['nombre']);
     $descripcion = trim($_POST['descripcion']);
     $precio = floatval($_POST['precio']);
-    $stock = intval($_POST['stock']);
+    // $stock = intval($_POST['stock']);
     $estado = $_POST['estado'];
     $categoria_id = intval($_POST['categoria_id']);
 
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (strlen($nombre) < 3) $errores[] = "El nombre debe tener al menos 3 caracteres.";
     if (strlen($descripcion) < 5) $errores[] = "La descripción es muy corta.";
     if ($precio < 0) $errores[] = "El precio no puede ser negativo.";
-    if ($stock < 0) $errores[] = "El stock no puede ser negativo.";
+    // if ($stock < 0) $errores[] = "El stock no puede ser negativo.";
     if ($categoria_id <= 0) $errores[] = "La categoría debe ser un número válido.";
     if (!in_array($estado, ['activo', 'inactivo'])) $errores[] = "Estado no válido.";
 
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ Actualizar en la base de datos
         $update = "UPDATE productos 
                    SET nombre='$nombre', descripcion='$descripcion', precio='$precio',
-                       stock='$stock', imagen='$imagen', categoria_id='$categoria_id', estado='$estado' 
+                        imagen='$imagen', categoria_id='$categoria_id', estado='$estado' 
                    WHERE id = $id";
 
         if (mysqli_query($conexion, $update)) {
@@ -103,10 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3">
                 <label>Precio:</label>
                 <input type="number" step="0.01" name="precio" class="form-control" value="<?= $producto['precio'] ?>" required>
-            </div>
-            <div class="mb-3">
-                <label>Stock:</label>
-                <input type="number" name="stock" class="form-control" value="<?= $producto['stock'] ?>" required>
             </div>
             <div class="mb-3">
                 <label>Imagen actual:</label><br>

@@ -7,8 +7,28 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
 }
 
 include('conexion.php');
-// Obtenemos todas las categorías de la base de datos
-$resultado = mysqli_query($conexion, "SELECT * FROM categorias");
+
+
+// Número de categorías por página
+$por_pagina = 10;
+
+// Página actual desde GET (por defecto página 1)
+$pagina = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+
+// Calcular desde qué fila empezar
+$offset = ($pagina - 1) * $por_pagina;
+
+// Total de registros para calcular cuántas páginas hay
+$total_resultado = mysqli_query($conexion, "SELECT COUNT(*) AS total FROM categorias");
+$total_filas = mysqli_fetch_assoc($total_resultado)['total'];
+$total_paginas = ceil($total_filas / $por_pagina);
+
+// Consulta con paginación
+$resultado = mysqli_query($conexion, "SELECT * FROM categorias ORDER BY id DESC LIMIT $por_pagina OFFSET $offset");
+
+
+// // Obtenemos todas las categorías de la base de datos
+// $resultado = mysqli_query($conexion, "SELECT * FROM categorias");
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -87,6 +107,28 @@ $resultado = mysqli_query($conexion, "SELECT * FROM categorias");
                     <?php } ?>
                 </tbody>
             </table>
+            <!-- Paginación -->
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <!-- Anterior -->
+                    <li class="page-item <?= $pagina <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?pagina=<?= $pagina - 1 ?>">Anterior</a>
+                    </li>
+
+                    <!-- Números de página -->
+                    <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                        <li class="page-item <?= $i == $pagina ? 'active' : '' ?>">
+                            <a class="page-link" href="?pagina=<?= $i ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <!-- Siguiente -->
+                    <li class="page-item <?= $pagina >= $total_paginas ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?pagina=<?= $pagina + 1 ?>">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+
         </div>
     </div>
 

@@ -1,0 +1,82 @@
+<?php 
+    session_start();
+    require 'php/conexion_bd.php';
+
+    if (
+        !isset($_SESSION['usuario_id']) ||
+        !isset($_POST['total']) ||
+        !isset($_POST['direccion']) ||
+        !isset($_POST['telefono'])
+    ) {
+        echo "Acceso no autorizado";
+        exit;
+    }
+
+    $usuario_id = $_SESSION['usuario_id'];
+    $total = floatval($_POST['total']);
+    $direccion = trim($_POST['direccion']);
+    $telefono = trim($_POST['telefono']);
+
+    // 1. Actualizar dirección y teléfono del usuario
+    $stmt = $conexion->prepare("UPDATE usuarios SET direccion = ?, telefono = ? WHERE id = ?");
+    $stmt->execute([$direccion, $telefono, $usuario_id]);
+
+    // 2. Obtener productos del carrito con stock actual
+    $sql = "SELECT 
+                c.variante_id,
+                c.cantidad,
+                p.precio,
+                vp.stock
+            FROM carrito c
+            INNER JOIN variantes_producto vp ON c.variante_id = vp.id
+            INNER JOIN productos p ON vp.producto_id = p.id
+            WHERE c.usuario_id = ?";
+    $stmt = $conexion->prepare($sql);
+    $stmt->execute([$usuario_id]);
+    $carrito = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    if (empty($carrito)) {
+        echo "Carrito vacío.";
+        exit;
+    }
+
+    // 3. Validar stock antes de procesar
+    foreach ($carrito as $item) {
+        if ($item['cantidad'] > $item['stock']) {
+            echo "Stock insuficiente para un producto del carrito.";
+            exit;
+        }
+    }
+
+    // 4. Crear pedido
+    $stmt = $conexion->prepare("INSERT INTO pedidos (usuario_id, total, estado) VALUES (?, ?, 'procesando')");
+    $stmt->execute([$usuario_id, $total]);
+    $pedido_id = $conexion->insert_id;
+
+    // 5. Insertar detalle_pedido y descontar stock
+    $stmt_detalle = $conexion->prepare("INSERT INTO detalle_pedido (pedido_id, variante_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
+    $stmt_stock = $conexion->prepare("UPDATE variantes_producto SET stock = stock - ? WHERE id = ?");
+
+    foreach ($carrito as $item) {
+        $subtotal = $item['precio'] * $item['cantidad'];
+
+        // Insertar detalle del pedido
+        $stmt_detalle->execute([$pedido_id, $item['variante_id'], $item['cantidad'], $item['precio'], $subtotal]);
+
+        // Descontar stock
+        $stmt_stock->execute([$item['cantidad'], $item['variante_id']]);
+    }
+
+    // 6. Registrar pago (simulado)
+    $metodo = 'tarjeta';
+    $stmt_pago = $conexion->prepare("INSERT INTO pagos (id_usuario, pedido_id, metodo, estado, monto) VALUES (?, ?, ?, 'completado', ?)");
+    $stmt_pago->execute([$usuario_id, $pedido_id, $metodo, $total]);
+
+    // 7. Vaciar carrito
+    $stmt = $conexion->prepare("DELETE FROM carrito WHERE usuario_id = ?");
+    $stmt->execute([$usuario_id]);
+
+    // 8. Redirigir a factura
+    header("Location: factura.php?pedido_id=$pedido_id");
+    exit;
+?>

@@ -9,15 +9,12 @@ include('conexion.php');
 
 $mensaje = '';
 $categorias = mysqli_query($conexion, "SELECT id, nombre FROM categorias");
-
-//se recogen los datos del form
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim($_POST['nombre']);
     $descripcion = trim($_POST['descripcion']);
     $precio = floatval($_POST['precio']);
     $estado = $_POST['estado'];
     $categoria_id = intval($_POST['categoria_id']);
-    $genero = $_POST['genero'] ?? '';
 
     $errores = [];
 
@@ -33,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($precio < 0) $errores[] = "El precio no puede ser negativo ni estar vacío.";
     if ($categoria_id <= 0) $errores[] = "La categoría debe ser un número válido.";
     if (!in_array($estado, ['activo', 'inactivo'])) $errores[] = "Estado no válido.";
-    if (!in_array($genero, ['hombre', 'mujer', 'niño', 'niña', 'unisex'])) $errores[] = "Género no válido.";
 
     // Imagen
     $imagen = '';
@@ -61,9 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Mostrar errores o insertar
     if (empty($errores)) {
-        
-        $query = "INSERT INTO productos (nombre, descripcion, precio, imagen, categoria_id, estado, genero)
-                  VALUES ('$nombre', '$descripcion', '$precio', '$imagen', '$categoria_id', '$estado', '$genero')";
+        $query = "INSERT INTO productos (nombre, descripcion, precio, imagen, categoria_id, estado)
+                  VALUES ('$nombre', '$descripcion', '$precio', '$imagen', '$categoria_id', '$estado')";
 
         if (mysqli_query($conexion, $query)) {
             $_SESSION['mensaje_exito'] = "Producto agregado exitosamente.";
@@ -99,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <h2>Agregar Producto</h2>
     <?php if ($mensaje): ?>
-        <div class="alert alert-warning"><?= $mensaje ?></div>
-    <?php endif; ?>
+    <div class="alert alert-warning"><?= $mensaje ?></div>
+<?php endif; ?>
 
     <form method="POST" enctype="multipart/form-data" action="" id="formProducto" novalidate>
         <div class="mb-3">
@@ -110,34 +105,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    title="Mínimo 3 caracteres, sin solo espacios">
             <div id="nombre-feedback" class="form-text text-danger d-none">Este nombre ya existe.</div>
         </div>
-
         <div class="mb-3">
             <label>Descripción:</label>
             <textarea name="descripcion" class="form-control" required minlength="5" maxlength="200"
                       title="Entre 5 y 200 caracteres"></textarea>
         </div>
-
         <div class="mb-3">
             <label>Precio:</label>
             <input type="number" name="precio" class="form-control" required step="0.01" min="0" max="1000000">
         </div>
-
         <div class="mb-3">
             <label>Imagen:</label>
             <input type="file" name="imagen" class="form-control" accept="image/jpeg, image/png, image/webp" id="imagen">
             <img id="preview" src="#" alt="Vista previa de imagen" class="d-none"/>
         </div>
-
         <div class="mb-3">
-            <label>Categoría:</label>
-            <select name="categoria_id" class="form-select" required>
-                <option value="" disabled selected>Selecciona una categoría</option>
-                <?php while ($cat = mysqli_fetch_assoc($categorias)) : ?>
-                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-
+    <label>Categoría:</label>
+    <select name="categoria_id" class="form-select" required>
+        <option value="" disabled selected>Selecciona una categoría</option>
+        <?php while ($cat = mysqli_fetch_assoc($categorias)) : ?>
+            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nombre']) ?></option>
+        <?php endwhile; ?>
+    </select>
+</div>
         <div class="mb-3">
             <label>Estado:</label>
             <select name="estado" class="form-select" required>
@@ -146,19 +136,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <option value="inactivo">Inactivo</option>
             </select>
         </div>
-
-        <div class="mb-3">
-            <label>Género:</label>
-            <select name="genero" class="form-select" required>
-                <option value="" disabled selected>Seleccione género</option>
-                <option value="hombre">Hombre</option>
-                <option value="mujer">Mujer</option>
-                <option value="niño">Niño</option>
-                <option value="niña">Niña</option>
-                <option value="unisex">Unisex</option>
-            </select>
-        </div>
-
         <button type="submit" class="btn btn-success">Guardar</button>
         <a href="productos.php" class="btn btn-secondary">Volver</a>
     </form>

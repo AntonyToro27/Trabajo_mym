@@ -3,41 +3,42 @@
     session_start();
     include 'conexion.php';
 
+    //Verifica que el rol sea de admin.
     if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
         header("Location: ../../login-register/login-registro.php");
         exit();
     }
 
-// PROCESAR ENVÍO DEL FORMULARIO
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $producto_id = $_POST['producto_id'];
-    $talla_id = $_POST['talla_id'];
-    $color_id = $_POST['color_id'];
-    $stock = $_POST['stock'];
+    // PROCESAR ENVÍO DEL FORMULARIO
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $producto_id = $_POST['producto_id'];
+        $talla_id = $_POST['talla_id'];
+        $color_id = $_POST['color_id'];
+        $stock = $_POST['stock'];
 
-    // Validar que no exista la misma variante ya
-    $consulta = $conexion->prepare("SELECT id FROM variantes_producto WHERE producto_id = ? AND talla_id = ? AND color_id = ?");
-    $consulta->bind_param("iii", $producto_id, $talla_id, $color_id);
-    $consulta->execute();
-    $resultado = $consulta->get_result();
+        // Validar que no exista la misma variante ya
+        $consulta = $conexion->prepare("SELECT id FROM variantes_producto WHERE producto_id = ? AND talla_id = ? AND color_id = ?");
+        $consulta->bind_param("iii", $producto_id, $talla_id, $color_id);
+        $consulta->execute();
+        $resultado = $consulta->get_result();
 
-    if ($resultado->num_rows > 0) {
-        $mensaje = "Ya existe una variante con esa talla y color para este producto.";
-    } else {
-        $stmt = $conexion->prepare("INSERT INTO variantes_producto (producto_id, talla_id, color_id, stock) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iiii", $producto_id, $talla_id, $color_id, $stock);
-        if ($stmt->execute()) {
-            $mensaje = "Variante agregada correctamente.";
+        if ($resultado->num_rows > 0) {
+            $mensaje = "Ya existe una variante con esa talla y color para este producto.";
         } else {
-            $mensaje = "Error al agregar variante.";
+            $stmt = $conexion->prepare("INSERT INTO variantes_producto (producto_id, talla_id, color_id, stock) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("iiii", $producto_id, $talla_id, $color_id, $stock);
+            if ($stmt->execute()) {
+                $mensaje = "Variante agregada correctamente.";
+            } else {
+                $mensaje = "Error al agregar variante.";
+            }
         }
     }
-}
 
-// OBTENER DATOS PARA LOS SELECTS
-$productos = $conexion->query("SELECT id, nombre FROM productos WHERE estado = 'activo'");
-$tallas = $conexion->query("SELECT id, talla FROM tallas");
-$colores = $conexion->query("SELECT id, color FROM colores");
+    // OBTENER DATOS PARA LOS SELECTS
+    $productos = $conexion->query("SELECT id, nombre FROM productos WHERE estado = 'activo'");
+    $tallas = $conexion->query("SELECT id, talla FROM tallas");
+    $colores = $conexion->query("SELECT id, color FROM colores");
 ?>
 
 <!DOCTYPE html>
